@@ -30,7 +30,7 @@ exports.read=(req,res)=>{
 
 exports.update=(req,res)=>{
 
-        
+        console.log('inside update now')
         const form = new formidable.IncomingForm();
         form.uploadDir = "./uploads"
         form.keepExtensions = true;
@@ -56,11 +56,14 @@ exports.update=(req,res)=>{
          throw err
        })
        .on('end', () => {
-         
+         console.log('after parsing the form')
          User.findAll({
-             where:{id:req.param.id}
+             where:{id:req.params.id}
          }).then(user=>{
+             console.log('wow i found the user')
             const {email}=user[0].dataValues
+            console.log(email,req.auth.email)     
+
             if(req.auth.email!==email){
              return res.json({
                  error:'you are not the authenticated user'
