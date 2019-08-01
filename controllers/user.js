@@ -56,11 +56,12 @@ exports.update=(req,res)=>{
          throw err
        })
        .on('end', () => {
-         console.log('after parsing the form')
+         console.log('after parsing the form',req.params.id)
+
          User.findAll({
              where:{id:req.params.id}
          }).then(user=>{
-             console.log('wow i found the user')
+             console.log('wow i found the user',user)
             const {email}=user[0].dataValues
             console.log(email,req.auth.email)     
 
