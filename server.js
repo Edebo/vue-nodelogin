@@ -12,24 +12,19 @@ require('dotenv').config()
 //middlewares
 app.use(morgan('dev'))
 app.use(bodyParser.json())
-app.use(cookieParser())
+// app.use(cookieParser())
 app.use(cors())
 
 //making the uploads folder publicly available
 app.use('/uploads', express.static('uploads'));
 
-//ROUTE
-app.use('/api',authRoute)
-app.use('/api',userRoute)
-
-
-
+// //passport middleware
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 //ROUTE
 app.use('/api',authRoute)
 app.use('/api',userRoute)
-
-
 
 
 const port = process.env.PORT || 8000

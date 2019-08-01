@@ -1,5 +1,8 @@
-const db =require('../database/db')
-module.exports = db.sequelize.define('user',{
+const Sequelize=require('sequelize')
+const db=require('../database/db')
+
+//user is the table name
+module.exports =db.define('user',{
     id:{
         type:Sequelize.INTEGER,
         primaryKey:true,
@@ -18,9 +21,6 @@ module.exports = db.sequelize.define('user',{
     },
     picture:{
         type:Sequelize.STRING
-    },
-    default:{
-        type:Sequelize.STRING
     }
 
-},{timestamps:true})
+},{timestamps:false})

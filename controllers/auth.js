@@ -1,4 +1,4 @@
-const User=require('../model/user')
+const User=require('../models/user')
 const bcrypt=require('bcryptjs');
 const jwt =require('jsonwebtoken')
 
@@ -8,16 +8,26 @@ const jwt =require('jsonwebtoken')
 exports.signup = (req,res) => {
     const newUser={
         name:req.body.name,
-        email:req.body.email,
-       
+        email:req.body.email,      
     }
+    console.log(newUser)
     
-    User.findOne({
+    User.findAll({
         where:{
         email:req.body.email
     }
     }).then(user=>{
-        if(!user){
+        console.log('i got here')
+        if(user===undefined){
+            
+           return res.json({
+                message:`User with ${req.body.email} already exist`
+            })
+            
+        }
+
+        else{
+
             bcrypt.hash(req.body.password,10,(err,hash)=>{
                 newUser.password=hash
                 User.create(newUser)
@@ -33,12 +43,7 @@ exports.signup = (req,res) => {
                     })
                 })
             })
-        }
-
-        else{
-            res.json({
-                message:`User with ${req.body.email} already exist`
-            })
+            
         }
     }).catch(err=>{
         res.status(400).json({
@@ -50,32 +55,37 @@ exports.signup = (req,res) => {
 exports.signin=(req,res)=>{
 
     //find the user based on email
-    const {email} =req.body
-    User.findOne({
+ email =req.body.email
+    console.log(email)
+    User.findAll({
                 where:{
-                    email
+                    email:req.body.email
                 }
             })
              .then(user=>{
-            if(!user){
-                res.status(400).json({
+            if(user[0].dataValues===undefined){
+               return res.status(400).json({
                     error:'user with the email doesnt exit.Please signup'
                 })
             }
-
+            
+                const {id,email,password,name,picture}=user[0].dataValues
+                console.log(id,email,password,name)
             //if user exist then compare email and password
             //create authetication
-            if(bcrypt.compareSync(req.body.password,user.password)){
+            console.log(req.body.password)
+            if(bcrypt.compareSync(req.body.password,password)){
+                console.log('password was correct')
                  //generate token with jsonwebtoken using user id and secret key
-            const token=jwt.sign(user,process.env.JWT_SECRET,
+            const token=jwt.sign({email},process.env.SECRET,
                 {
                      expiresIn:60400// 1 week
                     })
-            const {name,email,picture}=user
-            res.json({
-                user:{
-                    name,email,picture,token
-                }
+                    console.log(token)
+            
+            console.log()
+          return  res.json({
+                   id,name,email,picture,token
             })
 
             }
@@ -85,9 +95,15 @@ exports.signin=(req,res)=>{
                     error:'incorrect password'
                 })
             }
-    }).catch(err=>{
+
+            // const {id,email,name}=user[0]
+           res.json({
+               id,email,name
+           })
+    })
+    .catch(err=>{
         res.status(400).json({
-            error:'An error occured'
+            error:err
         })
     })
     
@@ -103,17 +119,19 @@ exports.signout=(req,res)=>{
 //expressJwt needs cookies middleware to work
 //this is for protected route,authorization
 exports.requireSignin =(req,res,next)=>{
+    console.log('inside requiresign in')
     try{
         const header = req.headers['authorization'];
-
+console.log(header)
         if(typeof header !== 'undefined') {
             const bearer = header.split(' ');
             const token = bearer[1];
     
                //verify the JWT token generated for the user
-        const decode =jwt.verify(token,process.env.JWT_SECRET)
+        const decode =jwt.verify(token,process.env.SECRET)
         req.auth=decode
-            
+         console.log('inside require signin')   
+         console.log(req.auth)
             next();
         } else {
             //If header is undefined return Forbidden (403)

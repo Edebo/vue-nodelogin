@@ -1,9 +1,9 @@
 const User=require('../models/user')
 const formidable=require('formidable')
 
-exports.userByEmail=(req,res,next,email)=>{
+exports.userById=(req,res,next,id)=>{
     User.findOne({where:
-        {email}
+        {id}
     }).then(user=>{
 
         if(!user){
@@ -30,6 +30,7 @@ exports.read=(req,res)=>{
 
 exports.update=(req,res)=>{
 
+        
         const form = new formidable.IncomingForm();
         form.uploadDir = "./uploads"
         form.keepExtensions = true;
@@ -56,14 +57,25 @@ exports.update=(req,res)=>{
        })
        .on('end', () => {
          
-         User.findOne({
-             where:{email}
+         User.findAll({
+             where:{id:req.param.id}
          }).then(user=>{
-             user.update(obj).then(()=>{
-                 res.json({
-                     message:'update is successful'
-                 })
+            const {email}=user[0].dataValues
+            if(req.auth.email!==email){
+             return res.json({
+                 error:'you are not the authenticated user'
              })
+
+            }
+
+            user.update(obj).then(()=>{
+                 
+                res.json({
+                    message:'update is successful',
+                   user
+                })
+            })
+          
          }).catch(err=>{
              res.status(400).json({
                  error:'Couldnt update your profile'
@@ -72,4 +84,13 @@ exports.update=(req,res)=>{
         })
    
    
+}
+
+exports.all=(req,res)=>{
+    // Find all users
+User.findAll().then(users => {
+   res.json({
+       users
+   })
+  });
 }
