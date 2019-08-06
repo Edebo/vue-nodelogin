@@ -148,14 +148,32 @@ console.log(header)
 
 //this middleware make sure it is the current login user
 exports.isAuth=(req,res,next)=>{
-    let user=req.profile && req.auth && req.profile._id==req.auth._id
-    if(!user){
-        res.status(403).json({
-            error:'access denied'
-        })
-    }
 
-    next()
+    User.findAll({
+        where:{id:req.params.id}
+    }).then(user=>{
+        console.log('wow i found the user',user)
+        const {email}=user[0].dataValues
+            console.log(email,req.auth.email)     
+
+            if(req.auth.email!==email){
+             return res.json({
+                 error:'you are not the authenticated user'
+             })
+            }
+        if(!user){
+          return res.status(400).json({
+              error:'User does not exist'
+          })
+        }
+    console.log('after authentication')
+        next()
+    }).catch(err=>{
+        res.status(400).json({
+            error:''
+        })
+    })
+   
 }
 
 
